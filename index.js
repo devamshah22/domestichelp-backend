@@ -7,26 +7,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ------------------
-// Brevo configuration
-// ------------------
+// Brevo config
 const client = SibApiV3Sdk.ApiClient.instance;
-
-// ✅ Correct auth key
 client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
 const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// ------------------
-// Health check
-// ------------------
 app.get("/", (req, res) => {
   res.send("Domestic Help Backend Running ✅");
 });
 
-// ------------------
-// Registration API
-// ------------------
 app.post("/register", async (req, res) => {
   const { service, name, email, phone, city } = req.body;
 
@@ -40,8 +30,7 @@ app.post("/register", async (req, res) => {
   try {
     await emailApi.sendTransacEmail({
       sender: {
-        // ✅ MUST be a VERIFIED sender in Brevo
-        email: process.env.SENDER_EMAIL,
+        email: process.env.SENDER_EMAIL, // ✅ Gmail verified sender
         name: "Domestic Help App",
       },
       to: [
@@ -74,9 +63,6 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// ------------------
-// Start server
-// ------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
