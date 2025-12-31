@@ -16,19 +16,21 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// API to receive registration
-app.post("/register", async (req, res) => {
-  const {
-    service,
-    name,
-    email,
-    phone,
-    state,
-    city,
-  } = req.body;
+// Health check (VERY IMPORTANT for Render)
+app.get("/", (req, res) => {
+  res.send("Domestic Help Backend Running");
+});
 
-  if (!name || !email || !phone) {
+// Registration API
+app.post("/register", async (req, res) => {
+  const { service, name, email, phone, city } = req.body;
+
+  if (!service || !name || !email || !phone || !city) {
     return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  if (!process.env.ADMIN_EMAIL) {
+    return res.status(500).json({ message: "Admin email not configured" });
   }
 
   const mailOptions = {
@@ -42,20 +44,26 @@ Service: ${service}
 Name: ${name}
 Email: ${email}
 Phone: ${phone}
-State: ${state}
 City: ${city}
 `,
   };
 
   try {
     await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: "Registration email sent" });
+    return res.status(200).json({
+      success: true,
+      message: "Registration email sent",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Email failed to send" });
+    console.error("Email error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Email failed to send",
+    });
   }
 });
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
