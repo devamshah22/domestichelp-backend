@@ -7,9 +7,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Brevo setup
+// Brevo config (FIXED)
 const client = SibApiV3Sdk.ApiClient.instance;
-client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+client.authentications["apiKey"].apiKey = process.env.BREVO_API_KEY;
 
 const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
@@ -18,7 +18,6 @@ app.get("/", (req, res) => {
   res.send("Domestic Help Backend Running");
 });
 
-// Registration API
 app.post("/register", async (req, res) => {
   const { service, name, email, phone, city } = req.body;
 
@@ -31,7 +30,10 @@ app.post("/register", async (req, res) => {
 
   try {
     await emailApi.sendTransacEmail({
-      sender: { email: "no-reply@domestichelpapp.com", name: "Domestic Help App" },
+      sender: {
+        email: "no-reply@domestichelpapp.com",
+        name: "Domestic Help App",
+      },
       to: [{ email: process.env.ADMIN_EMAIL }],
       subject: `New Service Registration: ${service}`,
       htmlContent: `
@@ -49,7 +51,7 @@ app.post("/register", async (req, res) => {
       message: "Registration email sent",
     });
   } catch (error) {
-    console.error("BREVO ERROR:", error);
+    console.error("BREVO ERROR:", error.response?.body || error.message);
     return res.status(500).json({
       success: false,
       message: "Email sending failed",
