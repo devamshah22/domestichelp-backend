@@ -14,7 +14,10 @@ const transporter = nodemailer.createTransport({
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS,
   },
+  debug: true,
+  logger: true,
 });
+
 
 // Health check (VERY IMPORTANT for Render)
 app.get("/", (req, res) => {
@@ -55,12 +58,13 @@ City: ${city}
       message: "Registration email sent",
     });
   } catch (error) {
-    console.error("Email error:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: "Email failed to send",
-    });
-  }
+  console.error("FULL EMAIL ERROR:", error);
+  return res.status(500).json({
+    success: false,
+    message: error.message,
+  });
+}
+
 });
 
 const PORT = process.env.PORT || 3000;
