@@ -9,7 +9,7 @@ app.use(express.json());
 
 // Brevo config (FIXED)
 const client = SibApiV3Sdk.ApiClient.instance;
-client.authentications["apiKey"].apiKey = process.env.BREVO_API_KEY;
+client.authentications["api-Key"].apiKey = process.env.BREVO_API_KEY;
 
 const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
