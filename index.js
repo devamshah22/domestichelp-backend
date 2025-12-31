@@ -7,13 +7,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Brevo config (FIXED)
+// Brevo client
 const client = SibApiV3Sdk.ApiClient.instance;
-client.authentications["api-Key"].apiKey = process.env.BREVO_API_KEY;
+
+// ✅ CORRECT AUTH KEY NAME
+client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
 const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// Health check
 app.get("/", (req, res) => {
   res.send("Domestic Help Backend Running");
 });
@@ -46,13 +47,13 @@ app.post("/register", async (req, res) => {
       `,
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Registration email sent",
     });
   } catch (error) {
     console.error("BREVO ERROR:", error.response?.body || error.message);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Email sending failed",
     });
