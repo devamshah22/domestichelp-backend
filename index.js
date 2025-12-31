@@ -7,18 +7,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Brevo client
+// ------------------
+// Brevo configuration
+// ------------------
 const client = SibApiV3Sdk.ApiClient.instance;
 
-// ✅ CORRECT AUTH KEY NAME
+// ✅ Correct auth key
 client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
 const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
+// ------------------
+// Health check
+// ------------------
 app.get("/", (req, res) => {
-  res.send("Domestic Help Backend Running");
+  res.send("Domestic Help Backend Running ✅");
 });
 
+// ------------------
+// Registration API
+// ------------------
 app.post("/register", async (req, res) => {
   const { service, name, email, phone, city } = req.body;
 
@@ -32,13 +40,19 @@ app.post("/register", async (req, res) => {
   try {
     await emailApi.sendTransacEmail({
       sender: {
-        email: "no-reply@domestichelpapp.com",
+        // ✅ MUST be a VERIFIED sender in Brevo
+        email: process.env.SENDER_EMAIL,
         name: "Domestic Help App",
       },
-      to: [{ email: process.env.ADMIN_EMAIL }],
+      to: [
+        {
+          email: process.env.ADMIN_EMAIL,
+          name: "Admin",
+        },
+      ],
       subject: `New Service Registration: ${service}`,
       htmlContent: `
-        <h3>New Service Registration</h3>
+        <h2>New Service Registration</h2>
         <p><b>Service:</b> ${service}</p>
         <p><b>Name:</b> ${name}</p>
         <p><b>Email:</b> ${email}</p>
@@ -47,19 +61,22 @@ app.post("/register", async (req, res) => {
       `,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Registration email sent",
     });
   } catch (error) {
     console.error("BREVO ERROR:", error.response?.body || error.message);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Email sending failed",
     });
   }
 });
 
+// ------------------
+// Start server
+// ------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
